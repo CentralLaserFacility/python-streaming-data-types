@@ -13,5 +13,3 @@ class DType(object):
     uint64 = 7
     float32 = 8
     float64 = 9
-    c_string = 10
-
