@@ -113,7 +113,7 @@ def get_data(raw_data, datatype) -> np.ndarray:
     return raw_data.view(type_map[datatype])
 
 
-def deserialise_wav00(buffer: Union[bytearray, bytes]) -> wa00_t:
+def deserialise_wa00(buffer: Union[bytearray, bytes]) -> wa00_t:
     check_schema_identifier(buffer, FILE_IDENTIFIER)
     waveform_array = WaveFormArray.GetRootAsWaveFormArray(buffer, 0)
     max_time = datetime(
@@ -140,4 +140,5 @@ def deserialise_wav00(buffer: Union[bytearray, bytes]) -> wa00_t:
         x_timestamp=datetime.fromtimestamp(x_timestamp, tz=timezone.utc),
         y_unit=y_unit,
         x_unit=x_unit,
+        number_of_elements=number_of_elements,
     )
