@@ -27,11 +27,11 @@ FILE_IDENTIFIER = b"wa00"
 def serialise_wa00(
     values_x_array: np.ndarray,
     values_y_array: np.ndarray,
-    y_timestamp: Optional[datetime] = None,
+    *,
     x_timestamp: Optional[datetime] = None,
-    y_unit: Optional[str] = None,
+    y_timestamp: Optional[datetime] = None,
     x_unit: Optional[str] = None,
-    number_of_elements: Optional[np.uint32] = None
+    y_unit: Optional[str] = None,
 ) -> bytes:
     builder = flatbuffers.Builder(1024)
 
@@ -74,8 +74,6 @@ def serialise_wa00(
         WaveFormArrayAddYUnit(builder,y_unit_offset)
     if x_unit is not None:
         WaveFormArrayAddXUnit(builder,x_unit_offset)
-    if number_of_elements is not None:
-        WaveFormArrayAddNumberOfElements(builder, number_of_elements)
 
     WA_Message = WaveFormArrayEnd(builder)
     builder.Finish(WA_Message, file_identifier=FILE_IDENTIFIER)
@@ -89,7 +87,6 @@ class wa00_t:
     x_timestamp: Optional[np.uint64] = None
     x_unit: Optional[str] = None
     y_unit: Optional[str] = None
-    number_of_elements: Optional[np.uint32] = None
 
 
 
@@ -119,26 +116,42 @@ def deserialise_wa00(buffer: Union[bytearray, bytes]) -> wa00_t:
     max_time = datetime(
         year=3001, month=1, day=1, hour=0, minute=0, second=0
     ).timestamp()
-    y_timestamp = waveform_array.YTimestamp() / 1e9
-    x_timestamp = waveform_array.XTimestamp() / 1e9
-    y_unit = waveform_array.YUnit()
-    x_unit = waveform_array.XUnit()
+    y_timestamp = waveform_array.YTimestamp()
+    x_timestamp = waveform_array.XTimestamp()
 
-    if y_timestamp > max_time:
-        y_timestamp = max_time
-    if x_timestamp > max_time:
-        x_timestamp = max_time
+    if x_timestamp:
+        x_timestamp = x_timestamp/1e9
+        if x_timestamp > max_time:
+            x_timestamp = max_time
+        x_timestamp=datetime.fromtimestamp(x_timestamp, tz=timezone.utc)
+    else:
+        x_timestamp = None
+    
+    if y_timestamp:
+        y_timestamp = y_timestamp/1e9
+        if y_timestamp > max_time:
+            y_timestamp = max_time
+        y_timestamp=datetime.fromtimestamp(y_timestamp, tz=timezone.utc)
+    else:
+        y_timestamp = None
+
+    x_unit = waveform_array.XUnit()
+    y_unit = waveform_array.YUnit()
+    if x_unit is not None:
+        x_unit = x_unit.decode()
+    if  y_unit is not None:
+        y_unit = y_unit.decode()
+
+    
+
     x_array = get_data(waveform_array.XDataAsNumpy(), waveform_array.XDataType())
     y_array = get_data(waveform_array.YDataAsNumpy(), waveform_array.YDataType())
-    y_unit = waveform_array.YUnit()
-    x_unit = waveform_array.XUnit()
-    number_of_elements = waveform_array.NumberOfElements()
+
     return wa00_t(
         values_x_array=x_array,
         values_y_array=y_array,
-        y_timestamp=datetime.fromtimestamp(y_timestamp, tz=timezone.utc),
-        x_timestamp=datetime.fromtimestamp(x_timestamp, tz=timezone.utc),
+        x_timestamp=x_timestamp,
+        y_timestamp=y_timestamp,
         y_unit=y_unit,
         x_unit=x_unit,
-        number_of_elements=number_of_elements,
     )
