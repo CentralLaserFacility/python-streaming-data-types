@@ -12,11 +12,10 @@ from streaming_data_types.fbschemas.arrays_wav_00.WaveFormArray import (
     WaveFormArrayAddYData,
     WaveFormArrayAddXDataType,
     WaveFormArrayAddYDataType,
-    WaveFormArrayAddYTimestamp,
+    WaveFormArrayAddTimestamp,
     WaveFormArrayAddXTimestamp,
     WaveFormArrayAddYUnit,
     WaveFormArrayAddXUnit,
-    WaveFormArrayAddNumberOfElements,
     WaveFormArrayEnd,
 )
 from streaming_data_types.utils import check_schema_identifier
@@ -29,7 +28,7 @@ def serialise_wa00(
     values_y_array: np.ndarray,
     *,
     x_timestamp: Optional[datetime] = None,
-    y_timestamp: Optional[datetime] = None,
+    timestamp: Optional[datetime] = None,
     x_unit: Optional[str] = None,
     y_unit: Optional[str] = None,
 ) -> bytes:
@@ -66,8 +65,8 @@ def serialise_wa00(
     WaveFormArrayAddYData(builder, y_data_offset)
     WaveFormArrayAddXDataType(builder, datatype_x_array)
     WaveFormArrayAddYDataType(builder, datatype_y_array)
-    if y_timestamp is not None:
-        WaveFormArrayAddYTimestamp(builder, int(y_timestamp.timestamp() * 1e9))
+    if timestamp is not None:
+        WaveFormArrayAddTimestamp(builder, int(timestamp.timestamp() * 1e9))
     if x_timestamp is not None:
         WaveFormArrayAddXTimestamp(builder, int(x_timestamp.timestamp() * 1e9))
     if y_unit is not None:
@@ -83,7 +82,7 @@ def serialise_wa00(
 class wa00_t:
     values_x_array: np.ndarray
     values_y_array: np.ndarray
-    y_timestamp: Optional[np.uint64] = None
+    timestamp: Optional[np.uint64] = None
     x_timestamp: Optional[np.uint64] = None
     x_unit: Optional[str] = None
     y_unit: Optional[str] = None
@@ -116,7 +115,7 @@ def deserialise_wa00(buffer: Union[bytearray, bytes]) -> wa00_t:
     max_time = datetime(
         year=3001, month=1, day=1, hour=0, minute=0, second=0
     ).timestamp()
-    y_timestamp = waveform_array.YTimestamp()
+    timestamp = waveform_array.Timestamp()
     x_timestamp = waveform_array.XTimestamp()
 
     if x_timestamp:
@@ -127,13 +126,13 @@ def deserialise_wa00(buffer: Union[bytearray, bytes]) -> wa00_t:
     else:
         x_timestamp = None
     
-    if y_timestamp:
-        y_timestamp = y_timestamp/1e9
-        if y_timestamp > max_time:
-            y_timestamp = max_time
-        y_timestamp=datetime.fromtimestamp(y_timestamp, tz=timezone.utc)
+    if timestamp:
+        timestamp = timestamp/1e9
+        if timestamp > max_time:
+            timestamp = max_time
+        timestamp=datetime.fromtimestamp(timestamp, tz=timezone.utc)
     else:
-        y_timestamp = None
+        timestamp = None
 
     x_unit = waveform_array.XUnit()
     y_unit = waveform_array.YUnit()
@@ -151,7 +150,7 @@ def deserialise_wa00(buffer: Union[bytearray, bytes]) -> wa00_t:
         values_x_array=x_array,
         values_y_array=y_array,
         x_timestamp=x_timestamp,
-        y_timestamp=y_timestamp,
+        timestamp=timestamp,
         y_unit=y_unit,
         x_unit=x_unit,
     )

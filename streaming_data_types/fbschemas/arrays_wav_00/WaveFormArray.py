@@ -29,7 +29,7 @@ class WaveFormArray(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # WaveFormArray
-    def YTimestamp(self):
+    def Timestamp(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint64Flags, o + self._tab.Pos)
@@ -124,19 +124,12 @@ class WaveFormArray(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-    # WaveFormArray
-    def NumberOfElements(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
-        if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
-        return 0
-
-def WaveFormArrayStart(builder): builder.StartObject(9)
+def WaveFormArrayStart(builder): builder.StartObject(8)
 def Start(builder):
     return WaveFormArrayStart(builder)
-def WaveFormArrayAddYTimestamp(builder, yTimestamp): builder.PrependUint64Slot(0, yTimestamp, 0)
-def AddYTimestamp(builder, yTimestamp):
-    return WaveFormArrayAddYTimestamp(builder, yTimestamp)
+def WaveFormArrayAddTimestamp(builder, timestamp): builder.PrependUint64Slot(0, timestamp, 0)
+def AddTimestamp(builder, timestamp):
+    return WaveFormArrayAddTimestamp(builder, timestamp)
 def WaveFormArrayAddXTimestamp(builder, xTimestamp): builder.PrependUint64Slot(1, xTimestamp, 0)
 def AddXTimestamp(builder, xTimestamp):
     return WaveFormArrayAddXTimestamp(builder, xTimestamp)
@@ -164,9 +157,6 @@ def AddXUnit(builder, xUnit):
 def WaveFormArrayAddYUnit(builder, yUnit): builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(yUnit), 0)
 def AddYUnit(builder, yUnit):
     return WaveFormArrayAddYUnit(builder, yUnit)
-def WaveFormArrayAddNumberOfElements(builder, numberOfElements): builder.PrependUint32Slot(8, numberOfElements, 0)
-def AddNumberOfElements(builder, numberOfElements):
-    return WaveFormArrayAddNumberOfElements(builder, numberOfElements)
 def WaveFormArrayEnd(builder): return builder.EndObject()
 def End(builder):
     return WaveFormArrayEnd(builder)
